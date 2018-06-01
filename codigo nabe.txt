@@ -1,0 +1,288 @@
+/ se declara una matriz en la cual se define los disparos
+// Shots es un objeto que ha definido que representa una bala
+// Shots es un objeto que ha definido que representa los asteroides
+ArrayList <shot> shots = new ArrayList <shot> ();
+ArrayList <astroid> astroids = new ArrayList <astroid> ();
+
+// Configuración: cuántos segundos hay entre cada nuevo astroide (3 segundos = 3 * 60) 
+int astroid_rate = 2 * 60;
+int astroid_count = 0;
+// Tamaño en pixel del astroid nominal
+flotante ast_size = 10;
+int ast_id = 1;
+int puntuación = 0;
+flotante hitRate = 0;
+int numShots = 0;
+int naves = 3;
+int pausa = 0;
+
+// Solo se ejecuta una vez Configuración de vacío
+void setup () {
+  frameRate (60);
+  tamaño (500, 500);
+  golpe (0);
+  llenar (255);
+}
+
+// Llama 60 veces por segundo
+void draw ()
+{
+  int i;
+  // Encuentra los valores de x = 250, y = 250 del mouse
+  ángulo de flotación = atan2 (mouseY - 250, mouseX - 250);
+  if (pause == 0) {
+    // Se crea un nuevo asteroide cada 5 segundos (60 fps * 4 seg)
+    if (astroid_count - == 0) {
+      astroids.add (nuevo astroide (aleatorio (0, TWO_PI), aleatorio (0.1, 2.5), aleatorio (0.5, 4), aleatorio (-0.1, 0.1), 
+        aleatorio (-150, 150), aleatorio (-150, 150), ast_id ++));
+      // Incrementa solo un poco
+      astroid_count = astroid_rate--;
+    }
+    // Limpia la pantalla negra
+    fondo (0);
+   // Revisa todos los asteroides (si hay alguno) y actualiza su posición
+    para (i = 0; i <astroids.size (); i ++) {
+      astroid a = astroids.get (i);
+      if (a.update ()) {
+        // Elimina la bala si venta de la interfaz de pantalla
+        astroids.remove (i);
+      }
+     // Detecta colisiones con asteroides al aproximar la nave con 4 círculos
+      if (a.coll (250, 250, 6, -1) ||
+        a.coll (13 * cos (ángulo-PI) +250, 13 * sin (ángulo-PI) +250, 9, -1) ||
+        a.coll (10 * cos (ángulo) +250, 10 * sin (ángulo) +250, 4, -1) ||
+        a.coll (18 * cos (ángulo) +250, 18 * sin (ángulo) +250, 1, -1)) {
+        naves--;
+        pausa = 3 * 60;
+      }
+    }
+
+    // "pushMatrix" guarda el estado real
+    pushMatrix ();
+    // Establecer 250,250 como el nuevo 0,0 
+    traducir (250, 250);
+    // Rota la nave "angulo" 
+    girar (ángulo);
+    llenar (255);
+// Dibuja un triángulo (la nave)
+    triángulo (20, 0, -20, -10, -20, 10);
+  // volver a la vista normal
+    popMatrix ();
+  } else {
+    // Pausa es mayor que 0
+     // limpiar pantalla negra
+    fondo (0, 10);
+
+   // Revisa todos los asteroides (si hay alguno) y actualiza su posición
+    para (i = 0; i <astroids.size (); i ++) {
+      astroid a = astroids.get (i);
+      a.incSpeed ​​();
+      if (a.update ()) {
+        // Remueve la bala si la bala sale de las coordenadas de la pantalla
+        astroids.remove (i);
+      }
+    }
+    if (naves == 0) {
+      // limpia la panatalla negra
+      textAlign (DOWN);
+      texto ("Game Over", ancho / 2, alto / 2);
+      texto ("Presione cualquier tecla para reiniciar", ancho / 2, 2 * alto / 3);
+      // un nuevo asteroide 0.5 segundos (60 fps * 0.5 seg)
+      // Para hacer que algo suceda mientras esperas
+      if (astroid_count - == 0) {
+        astroids.add (nuevo astroide (aleatorio (0, TWO_PI), aleatorio (0.1, 2.0), aleatorio (0.5, 4), aleatorio (-0.1, 0.1), 
+          aleatorio (-150, 150), aleatorio (-150, 150), ast_id ++));
+        // Aumentar la tasa solo un poco
+        astroid_count = 30;
+      }
+      if (keyPressed == true) {
+        puntaje = 0;
+        numShots = 0;
+        naves = 3;
+        astroid_rate = 3 * 60;
+        astroid_count = 0;
+        ast_id = 1;
+        astroids = new ArrayList <astroid> ();
+      }
+    } else {
+     // Espera a que desaparezcan los asteroides
+      if (astroids.size () == 0) {
+        pausa = 0;
+      }
+    }
+  }
+// Revise todas las tomas y su posición
+  para (i = 0; i <shots.size (); i ++) {
+    tiro s = disparos. get (i);
+    if (s.update ()) {
+     // elimina la bala si golpea al asteroide o sale de la pantalla
+      disparar.removiar (i);
+    }
+  }
+  textAlign (IZQUIERDA);
+  texto ("Puntuación:" + puntaje, 15, 15);
+  texto ("Barcos:" + naves, 15, 30);
+  texto ("Frecuencia de aciertos:" + int (100 * puntaje / flotación (numShots)) + "%", 15, 45);
+}
+
+// Cuando se presiona el botón izquierdo del mouse, crea una nueva toma
+void mousePressed () {
+  if (pause == 0) {
+    // Solo agrega disparos cuando estás en acción
+    if (mouseButton == LEFT) {
+      ángulo de flotación = atan2 (mouseY - 250, mouseX - 250);
+      shots.add (nuevo disparo (ángulo, 4));
+      numShots ++;
+    }
+    if (mouseButton == RIGHT) {
+      astroids.add (nuevo astroide (aleatorio (0, TWO_PI), aleatorio (0.1, 2.0), aleatorio (0.5, 4), aleatorio (-0.1, 0.1), 
+        aleatorio (-80, 80), aleatorio (-80, 80), ast_id ++));
+    }
+  }
+}
+
+// Definición de clase para el tiro
+tiro de clase {
+ // Un disparo tiene x, y, y velocidad en x, y. Todos flotan para un movimiento suave
+  ángulo de flotación, velocidad;
+  float x, y, x_speed, y_speed;
+
+  // Constructor  
+  disparo (float _angle, float _speed) {
+    ángulo = _angle;
+    velocidad = _velocidad;
+    x_speed = velocidad * cos (ángulo);
+    y_speed = velocidad * sin (ángulo);
+    x = ancho / 2 + 20 * cos (ángulo);
+    y = altura / 2 + 20 * sin (ángulo);
+  }
+// actualiza posicion, deviempre cuando cuando esta fuera de la pantalla
+  boolean update () {
+    int i;
+    x = x + x_speed;
+    y = y + y_speed;
+
+    // dibuja bala
+    elipse (x, y, 3, 3);
+
+    // checa colisiones
+    // Revisa todos los asteroides (si hay alguno)
+    para (i = 0; i <astroids.size (); i ++) {
+      astroid a = astroids.get (i);
+      if (a.coll (x, y, 3, -1)) {
+        puntaje ++;
+        ast_id ++;
+        astroids.remove (i);
+        // remueve la bala
+        devolver verdadero;
+      }
+    }
+  
+
+// Fin, comprueba si esta fuera de la pantalla
+    if (x <0 || x> ancho || y <0 || y> alto) {
+      devolver verdadero;
+    } else {
+      falso retorno;
+    }
+  }
+}
+
+
+
+// Definición de clase para el tiro
+clase astroide {
+// ángulo de asteroide, velocidad, tamaño, rotación
+  ángulo de flotación, velocidad, tamaño, velocidad de rotura;
+  posición de flotación;
+  rotación del flotador;
+  float xoff, yoff;
+  flotar x, y;
+  PShape s; // El objeto Shape - Mantiene la forma del asteroide
+  flotar yo;
+  int id;
+
+
+  // Constructor
+  astroid (float _angle, float _speed, float _size, float _rotSpeed, float _xoff, float _yoff, int _id) {
+    ángulo = _angle;
+    velocidad = _velocidad;
+    size = _size;
+    rotSpeed ​​= _rotSpeed;
+    xoff = _xoff;
+    yoff = _yoff;
+    id = _id;
+    if (xoff <1000) {
+      x = 250 + 500 * cos (ángulo) + xoff;
+      y = 250 + 500 * sin (ángulo) + yoff;
+    } else {
+      x = _xoff-2000;
+      y = _yoff-2000;
+    }
+    rotación = 0; 
+ 
+    // Genera la forma del astroide - Algunas variaciones para todos
+    s = createShape ();
+    s.beginShape ();
+    s.fill (255, 255, 100);
+    s.noStroke ();
+    para (i = 0; i <TWO_PI; i = i + PI / (aleatorio (4, 11))) {
+      s.vertex (aleatorio (ast_size * 0.8, ast_size * 1.2) * cos (i), aleatorio (ast_size * 0.8, ast_size * 1.2) * sin (i));
+    }
+    s.endShape (CLOSE);
+  }
+
+ // Aumenta la velocidad. Usado al final del juego para borrar la pantalla de los asteroides
+  void incSpeed ​​() {
+    velocidad = velocidad * 1.02;
+  }
+
+  // Actualiza la posicion, retorna true cuando sale de la pantalla
+  boolean update () {
+    int i;
+    x = x - velocidad cos (ángulo) *;
+    y = y - sin (ángulo) * velocidad;
+    rotation = rotation + rotSpeed; 
+
+   
+
+// Verificar la colisión entre asteroides y asteroides
+    para (i = 0; i <astroids.size (); i ++) {
+      astroid a = astroids.get (i);
+      if ((a! = this) && (a.coll (x, y, ast_size * size, id))) {
+        if (tamaño> 1) {
+          astroids.add (nuevo astroid (ángulo-aleatorio (PI / 5, PI / 7), velocidad + aleatorio (0, velocidad / 2), tamaño / 2, rotSpeed, 2000 + x, 2000 + y, id));
+          astroids.add (nuevo astroid (ángulo + aleatorio (PI / 5, PI / 7), velocidad + aleatorio (0, velocidad / 2), tamaño / 2, rotSpeed, 2000 + x, 2000 + y, id));    
+          ast_id ++;
+        }
+        astroids.remove (i);
+      }}
+      
+    pushMatrix ();
+    // // Establece posición como nuevo 0,0
+    traducir (x, y);
+    // rota pantalla (angulo)
+    rotar (rotación);
+    // Dibuja un asteroide
+    escala (tamaño);
+    forma (s, 0, 0);
+    // devuelve a la normalidad la perspectiva
+    popMatrix ();
+    if (x <-300 || x> 800 || y <-300 || y> 800) {
+      return true;} else {
+      falso retorno;
+    }}
+  boolean coll (float _x, float _y, float _size, int _id) {
+    float dist;
+    dist = sqrt ((x-_x) * (x-_x) + (y-_y) * (y-_y));
+    // Verifica si la distancia es más corta que el tamaño del asteroide y el tamaño de otros objetos
+    if ((dist <(_ size + ast_size * size)) && (id! = _ id)) {
+      // Colision 
+      if (_id> 0) id = _id;
+      if (tamaño> 1) {
+        // Si el asteroide era "grande" genera dos nuevos fragmentos
+        astroids.add (nuevo astroid (ángulo-aleatorio (PI / 5, PI / 7), velocidad + aleatorio (0, velocidad / 2), tamaño / 2, rotSpeed, 2000 + x, 2000 + y, id));
+        astroids.add (nuevo astroid (ángulo + aleatorio (PI / 5, PI / 7), velocidad + aleatorio (0, velocidad / 2), tamaño / 2, rotSpeed, 2000 + x, 2000 + y, id));
+      } return true;
+    } else { 
+      falso retorno;}}}
